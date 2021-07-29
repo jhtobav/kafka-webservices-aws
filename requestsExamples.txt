@@ -1,0 +1,44 @@
+https://7ls0std9ke.execute-api.us-east-1.amazonaws.com/UAT/signUp
+{
+    "username":"1",
+    "name":"BP ID de Prueba",
+    "email":"1@bpprueba.com",
+    "temporaryPassword":"K&9ACx.3T@X+E?,5",
+    "password":"CwU5e$Vfum!,]=W%"
+}
+
+https://7ls0std9ke.execute-api.us-east-1.amazonaws.com/UAT/signIn
+{
+    "username":"test",
+    "password":"CwU5e$Vfum!,]=W%"
+}
+
+https://7ls0std9ke.execute-api.us-east-1.amazonaws.com/UAT/produceMessage
+{
+  "msgType": "1_OUT",
+  "msg": "string"
+}
+
+https://7ls0std9ke.execute-api.us-east-1.amazonaws.com/UAT/consumeMessage
+no body
+
+
+
+{
+TopicPartition(topic='test', partition=0):
+[
+ConsumerRecord
+(topic='test', partition=0, offset=466, timestamp=1581978489213, timestamp_type=0, key=None, value=b'string10', headers=[], checksum=None, serialized_key_size=-1, serialized_value_size=8, serialized_header_size=-1)
+]
+}
+
+{
+TopicPartition(topic='test', partition=0):
+[
+  ConsumerRecord(topic='test', partition=0, offset=467, timestamp=1582034121206, timestamp_type=0, key=None, value=b'string', headers=[], checksum=None, serialized_key_size=-1, serialized_value_size=6, serialized_header_size=-1)
+, ConsumerRecord(topic='test', partition=0, offset=468, timestamp=1582034122137, timestamp_type=0, key=None, value=b'string', headers=[], checksum=None, serialized_key_size=-1, serialized_value_size=6, serialized_header_size=-1)
+, ConsumerRecord(topic='test', partition=0, offset=469, timestamp=1582034127044, timestamp_type=0, key=None, value=b'string2', headers=[], checksum=None, serialized_key_size=-1, serialized_value_size=7, serialized_header_size=-1)
+, ConsumerRecord(topic='test', partition=0, offset=470, timestamp=1582034131982, timestamp_type=0, key=None, value=b'string3', headers=[], checksum=None, serialized_key_size=-1, serialized_value_size=7, serialized_header_size=-1)
+, ConsumerRecord(topic='test', partition=0, offset=471, timestamp=1582034135418, timestamp_type=0, key=None, value=b'string4', headers=[], checksum=None, serialized_key_size=-1, serialized_value_size=7, serialized_header_size=-1)
+]
+}

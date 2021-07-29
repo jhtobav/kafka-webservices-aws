@@ -1,0 +1,194 @@
+service: amaru-webservices-MSK
+
+plugins:
+  - serverless-iam-roles-per-function
+  - serverless-python-requirements
+
+provider:
+  name: aws
+  runtime: python3.8
+  stage: UAT
+  region: us-east-1
+
+package:
+  individually: true
+  exclude:
+    - env/**
+    - node_modules/**
+    - .idea/**
+
+functions:
+  signIn:
+    handler: sign_in.endpoint_sign_in
+    module: sign_in
+    description: POST endpoint for signIn web service - python
+    memorySize: 1024
+    events:
+      - http:
+          path: signIn
+          method: post
+    environment:
+      userPoolId: 
+        Ref: CognitoUserPool
+      clientId:
+        Ref: CognitoUserPoolClient
+      clientSecret:
+        "1ef94iclv9c6absuvpdigqp55ltm0si6ambini6d1oli24rlbm1c"
+    iamRoleStatements:
+      - Effect: "Allow"
+        Action:
+          - "cognito-idp:AdminInitiateAuth"
+        Resource: 
+          Fn::GetAtt:
+            - CognitoUserPool
+            - Arn
+
+  signUp:
+    handler: sign_up.endpoint_sign_up
+    module: sign_up
+    description: POST endpoint for signUp web service - python
+    memorySize: 1024
+    events:
+      - http:
+          path: signUp
+          method: post
+    environment:
+      userPoolId: 
+        Ref: CognitoUserPool
+      clientId:
+        Ref: CognitoUserPoolClient
+      clientSecret:
+        "1ef94iclv9c6absuvpdigqp55ltm0si6ambini6d1oli24rlbm1c"
+    iamRoleStatements:
+      - Effect: "Allow"
+        Action:
+          - "cognito-idp:AdminInitiateAuth"
+          - "cognito-idp:AdminCreateUser"
+        Resource: 
+          Fn::GetAtt:
+            - CognitoUserPool
+            - Arn
+
+  produceMessage:
+    handler: produce_message.endpoint_produce_message
+    module: produce_message
+    description: POST endpoint for produce ISO message web service - python
+    memorySize: 1024
+    events:
+      - http:
+          path: produceMessage
+          method: post
+          authorizer:
+            type: COGNITO_USER_POOLS
+            authorizerId:
+              Ref: ApiGatewayAuthorizer
+    vpc:
+      securityGroupIds:
+        - 'sg-080ca460b89617549'
+      subnetIds:
+        - 'subnet-0fceb878a2b2cef27'
+
+  consumeMessage:
+    handler: consume_message.endpoint_consume_message
+    module: consume_message
+    description: POST endpoint for consume ISO message web service - python
+    memorySize: 1024
+    events:
+      - http:
+          path: consumeMessage
+          method: post
+          authorizer:
+            type: COGNITO_USER_POOLS
+            authorizerId:
+              Ref: ApiGatewayAuthorizer
+    vpc:
+      securityGroupIds:
+        - 'sg-080ca460b89617549'
+      subnetIds:
+        - 'subnet-0fceb878a2b2cef27'
+
+  consumeAllMessages:
+    handler: consume_all_messages.endpoint_consume_all_messages
+    module: consume_all_messages
+    description: POST endpoint for consuming all ISO messages in a topic - python
+    memorySize: 1024
+    events:
+      - http:
+          path: consumeAllMessages
+          method: post
+          authorizer:
+            type: COGNITO_USER_POOLS
+            authorizerId:
+              Ref: ApiGatewayAuthorizer
+    vpc:
+      securityGroupIds:
+        - 'sg-080ca460b89617549'
+      subnetIds:
+        - 'subnet-0fceb878a2b2cef27'
+
+  consumeSomeMessages:
+    handler: consume_some_messages.endpoint_consume_some_messages
+    module: consume_some_messages
+    description: POST endpoint for consuming some ISO messages in a topic - python
+    memorySize: 1024
+    events:
+      - http:
+          path: consumeSomeMessages
+          method: post
+          authorizer:
+            type: COGNITO_USER_POOLS
+            authorizerId:
+              Ref: ApiGatewayAuthorizer
+    vpc:
+      securityGroupIds:
+        - 'sg-080ca460b89617549'
+      subnetIds:
+        - 'subnet-0fceb878a2b2cef27'
+
+resources:
+  Resources:
+    CognitoUserPool:
+      Type: "AWS::Cognito::UserPool"
+      Properties:
+        UserPoolName: COG_${self:provider.stage}_POOL_amaru_webservices
+        Schema:
+          - Name: name
+            AttributeDataType: String
+            Mutable: true
+            Required: true
+          - Name: email
+            AttributeDataType: String
+            Mutable: true
+            Required: true
+        AutoVerifiedAttributes:
+          - email
+        AdminCreateUserConfig: 
+          AllowAdminCreateUserOnly: true
+        Policies:
+          PasswordPolicy:
+            MinimumLength: 16
+            RequireLowercase: true
+            RequireNumbers: true
+            RequireSymbols: true
+            RequireUppercase: true
+
+    CognitoUserPoolClient:
+      Type: AWS::Cognito::UserPoolClient
+      Properties:
+        ClientName: COG_${self:provider.stage}_CLNT_amaru_webservices
+        UserPoolId: !Ref CognitoUserPool
+        ExplicitAuthFlows:
+          - ALLOW_ADMIN_USER_PASSWORD_AUTH
+          - ALLOW_REFRESH_TOKEN_AUTH
+        GenerateSecret: true
+
+    ApiGatewayAuthorizer:
+      Type: AWS::ApiGateway::Authorizer
+      Properties:
+        Name: API_${self:provider.stage}_AUTH_cognito_authorizer
+        IdentitySource: method.request.header.Authorization
+        RestApiId:
+          Ref: ApiGatewayRestApi
+        Type: COGNITO_USER_POOLS
+        ProviderARNs:
+          - Fn::GetAtt: [CognitoUserPool, Arn]
